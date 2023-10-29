@@ -25,7 +25,7 @@ jobs:
           cache: 'npm'
 
       - name: Install AWS CDK
-        run: npm install -g aws-cdk-lib
+        run: npm install -g aws-cdk
       
       - name: Install Dependencies
         run: npm install
