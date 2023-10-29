@@ -10,28 +10,33 @@ on:
 
 jobs:
   build:
-    
     runs-on: ubuntu-latest
 
     steps:
-      - run: echo "Job initiated by a ${{ github.event_name }} event."
-      - uses: actions/checkout@v3
-
-      - name: Set up Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-
-      - name: Install dependencies
-        run: |
-          npm install -g aws-cdk-lib
-
+      - name: Checkout
+        uses: actions/checkout@v3
+      
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@master
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: us-east-1
+
+      - name: Configure Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install AWS CDK
+        run: npm install -g aws-cdk-lib
+      
+      - name: Install Dependencies
+        run: npm install
+
+      - name: CDK Synth
+        run: cdk synth
+      
 
       # - name: Deploy
       #   run: |
