@@ -3,7 +3,7 @@ import { Vpc, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Cluster, ClusterLoggingTypes, KubernetesVersion, NodegroupAmiType } from 'aws-cdk-lib/aws-eks';
-import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Role, ServicePrincipal, CompositePrincipal, AnyPrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
 import { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';
 
 export interface EksStackProps extends StackProps {
@@ -17,9 +17,17 @@ export class EksStack extends Stack {
     const vpc = props.vpc;
 
     // IAM role for the worker nodes
-    const workerRole = new Role(this, 'EKSWorkerRole', {
-      assumedBy: new ServicePrincipal('ec2.amazonaws.com'),
+    const workerRole = new Role(this, 'eksNodeRole', {
+      assumedBy: new CompositePrincipal(
+        new ServicePrincipal('ec2.amazonaws.com'),
+        new ServicePrincipal('eks.amazonaws.com'),
+        new AnyPrincipal(),
+      )
     });
+    workerRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSWorkerNodePolicy'));
+    workerRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEKS_CNI_Policy'));
+    workerRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly'));
+    workerRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSFargatePodExecutionRolePolicy'));
 
     // Create a KMS key
     const key = new Key(this, 'Key', {
