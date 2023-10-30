@@ -29,6 +29,13 @@ export class EksStack extends Stack {
     workerRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEC2ContainerRegistryReadOnly'));
     workerRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSFargatePodExecutionRolePolicy'));
 
+    // IAM role for the cluster
+    const clusterServiceRole = new Role(this, 'eksClusterRole', {
+      assumedBy: new ServicePrincipal('eks.amazonaws.com'),
+    });
+    clusterServiceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSClusterPolicy'));
+    clusterServiceRole.addManagedPolicy(ManagedPolicy.fromAwsManagedPolicyName('AmazonEKSServicePolicy'));
+
     // Create a KMS key
     const key = new Key(this, 'Key', {
       enableKeyRotation: true,
@@ -42,6 +49,7 @@ export class EksStack extends Stack {
       version: KubernetesVersion.V1_27,
       kubectlLayer: new KubectlV27Layer(this, 'kubectl'),
       secretsEncryptionKey: key,
+      role: clusterServiceRole,
       clusterLogging: [
         ClusterLoggingTypes.API,
         ClusterLoggingTypes.AUDIT,
@@ -65,5 +73,6 @@ export class EksStack extends Stack {
     cluster.awsAuth.addRoleMapping(allowedAdminRole, {
       groups: ['system:masters'],
     });
+
   }
 }
