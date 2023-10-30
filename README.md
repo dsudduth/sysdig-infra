@@ -1,2 +1,1 @@
-# sysdig-infra
-Baseline infrastructure to demo Sysdig capabilities.
+# Sysdig Demo - Infrastructure Setup
