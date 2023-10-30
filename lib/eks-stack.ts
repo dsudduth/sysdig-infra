@@ -2,7 +2,7 @@ import { Stack, StackProps } from 'aws-cdk-lib/core';
 import { Vpc, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { Cluster, KubernetesVersion, EksOptimizedImage, NodeType } from 'aws-cdk-lib/aws-eks';
+import { Cluster, ClusterLoggingTypes, KubernetesVersion, EksOptimizedImage, NodeType } from 'aws-cdk-lib/aws-eks';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { AutoScalingGroup,UpdatePolicy } from 'aws-cdk-lib/aws-autoscaling';
 
@@ -33,6 +33,13 @@ export class EksStack extends Stack {
       defaultCapacity: 0,
       version: KubernetesVersion.V1_27,
       secretsEncryptionKey: key,
+      clusterLogging: [
+        ClusterLoggingTypes.API,
+        ClusterLoggingTypes.AUDIT,
+        ClusterLoggingTypes.AUTHENTICATOR,
+        ClusterLoggingTypes.CONTROLLER_MANAGER,
+        ClusterLoggingTypes.SCHEDULER,
+      ]
     });
 
     // Add a managed node group to the cluster
@@ -51,5 +58,11 @@ export class EksStack extends Stack {
     });
 
     cluster.connectAutoScalingGroupCapacity(onDemandASG, {});
+
+    // Add allowed role to the cluster
+    const allowedAdminRole = Role.fromRoleName(this, 'AllowedAdminRole', 'EksAdmin');
+    cluster.awsAuth.addRoleMapping(allowedAdminRole, {
+      groups: ['system:masters'],
+    });
   }
 }
