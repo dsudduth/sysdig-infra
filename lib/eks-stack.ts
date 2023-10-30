@@ -5,6 +5,7 @@ import { Key } from 'aws-cdk-lib/aws-kms';
 import { Cluster, ClusterLoggingTypes, KubernetesVersion, EksOptimizedImage, NodeType } from 'aws-cdk-lib/aws-eks';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
 import { AutoScalingGroup,UpdatePolicy } from 'aws-cdk-lib/aws-autoscaling';
+import { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';
 
 export interface EksStackProps extends StackProps {
   readonly vpc: Vpc;
@@ -32,6 +33,7 @@ export class EksStack extends Stack {
       vpc,
       defaultCapacity: 0,
       version: KubernetesVersion.V1_27,
+      kubectlLayer: new KubectlV27Layer(this, 'kubectl'),
       secretsEncryptionKey: key,
       clusterLogging: [
         ClusterLoggingTypes.API,
