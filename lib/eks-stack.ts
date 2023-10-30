@@ -32,6 +32,7 @@ export class EksStack extends Stack {
       vpc,
       defaultCapacity: 0,
       version: KubernetesVersion.V1_27,
+      secretsEncryptionKey: key,
     });
 
     // Add a managed node group to the cluster
