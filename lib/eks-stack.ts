@@ -74,5 +74,60 @@ export class EksStack extends Stack {
       groups: ['system:masters'],
     });
 
+    // Enables full review of the cluster from the AWS console.
+    cluster.addManifest('dashboard', {
+      apiVersion: 'v1',
+      kind: 'ClusterRole',
+      metadata: {
+        name: 'eks-dashboard',
+      },
+      rules: [
+        {
+          apiGroups: [''],
+          resources: ['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods'],
+          verbs: ['get', 'list', 'watch'],
+        },
+        {
+          apiGroups: [''],
+          resources: ['namespaces'],
+          verbs: ['get', 'list'],
+        },
+        {
+          apiGroups: ['extensions'],
+          resources: ['namespaces'],
+          verbs: ['get', 'list'],
+        },
+        {
+          apiGroups: ['apps'],
+          resources: ['namespaces', 'deployments', 'replicasets', 'daemonsets', 'statefulsets'],
+          verbs: ['get', 'list'],
+        },
+        {
+          apiGroups: ['batch'],
+          resources: ['namespaces', 'jobs'],
+          verbs: ['get', 'list'],
+        }
+      ],
+    });
+
+    cluster.addManifest('dashboard-binding', {
+      apiVersion: 'rbac.authorization.k8s.io/v1',
+      kind: 'ClusterRoleBinding',
+      metadata: {
+        name: 'eks-dashboard',
+      },
+      subjects: [
+        {
+          kind: 'Group',
+          name: 'eks-dashboard',
+          apiGroup: 'rbac.authorization.k8s.io'
+        },
+      ],
+      roleRef: {
+        apiGroup: 'rbac.authorization.k8s.io',
+        name: 'eks-dashboard',
+        kind: 'ClusterRole'
+      }
+    });
   }
 }
