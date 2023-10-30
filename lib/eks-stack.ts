@@ -3,7 +3,7 @@ import { Vpc, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
 import { Cluster, ClusterLoggingTypes, KubernetesVersion, NodegroupAmiType } from 'aws-cdk-lib/aws-eks';
-import { Role, ServicePrincipal, CompositePrincipal, AnyPrincipal, ManagedPolicy } from 'aws-cdk-lib/aws-iam';
+import { Role, ServicePrincipal, CompositePrincipal, AnyPrincipal, ManagedPolicy, User } from 'aws-cdk-lib/aws-iam';
 import { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';
 
 export interface EksStackProps extends StackProps {
@@ -71,6 +71,11 @@ export class EksStack extends Stack {
     // Add allowed role to the cluster
     const allowedAdminRole = Role.fromRoleName(this, 'AllowedAdminRole', 'EksAdmin');
     cluster.awsAuth.addRoleMapping(allowedAdminRole, {
+      groups: ['system:masters'],
+    });
+
+    const allowedUser  = User.fromUserName(this, 'AllowedUser', 'SysdigDemoUser');
+    cluster.awsAuth.addUserMapping(allowedUser, {
       groups: ['system:masters'],
     });
 
