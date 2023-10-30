@@ -28,6 +28,7 @@ export class EksStack extends Stack {
 
     // Create the EKS cluster
     const cluster = new Cluster(this, 'EksCluster', {
+      clusterName: 'SysdigEksCluster',
       vpc,
       defaultCapacity: 0,
       version: KubernetesVersion.V1_27,
