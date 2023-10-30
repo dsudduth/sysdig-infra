@@ -2,9 +2,8 @@ import { Stack, StackProps } from 'aws-cdk-lib/core';
 import { Vpc, InstanceType } from 'aws-cdk-lib/aws-ec2';
 import { Construct } from 'constructs';
 import { Key } from 'aws-cdk-lib/aws-kms';
-import { Cluster, ClusterLoggingTypes, KubernetesVersion, EksOptimizedImage, NodeType } from 'aws-cdk-lib/aws-eks';
+import { Cluster, ClusterLoggingTypes, KubernetesVersion, NodegroupAmiType } from 'aws-cdk-lib/aws-eks';
 import { Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
-import { AutoScalingGroup,UpdatePolicy } from 'aws-cdk-lib/aws-autoscaling';
 import { KubectlV27Layer } from '@aws-cdk/lambda-layer-kubectl-v27';
 
 export interface EksStackProps extends StackProps {
@@ -44,22 +43,14 @@ export class EksStack extends Stack {
       ]
     });
 
-    // Add a managed node group to the cluster
-    const onDemandASG = new AutoScalingGroup(this, 'EksOnDemandASG', {
-      vpc: vpc,
-      role: workerRole,
-      minCapacity: 1,
-      maxCapacity: 3,
-      desiredCapacity: 1,
-      instanceType: new InstanceType('t3.medium'),
-      machineImage: new EksOptimizedImage({
-        kubernetesVersion: '1.27',
-        nodeType: NodeType.STANDARD,
-      }),
-      updatePolicy: UpdatePolicy.rollingUpdate(),
+    cluster.addNodegroupCapacity('EksNodeGroup', {
+      instanceTypes: [new InstanceType('t3.medium')],
+      minSize: 1,
+      maxSize: 3,
+      desiredSize: 1,
+      nodeRole: workerRole,
+      amiType: NodegroupAmiType.AL2_X86_64,
     });
-
-    cluster.connectAutoScalingGroupCapacity(onDemandASG, {});
 
     // Add allowed role to the cluster
     const allowedAdminRole = Role.fromRoleName(this, 'AllowedAdminRole', 'EksAdmin');
