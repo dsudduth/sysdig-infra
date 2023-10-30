@@ -76,10 +76,10 @@ export class EksStack extends Stack {
 
     // Enables full review of the cluster from the AWS console.
     cluster.addManifest('dashboard', {
-      apiVersion: 'v1',
+      apiVersion: 'rbac.authorization.k8s.io/v1',
       kind: 'ClusterRole',
       metadata: {
-        name: 'eks-dashboard',
+        name: 'eks-console-dashboard-full-access-clusterrole',
       },
       rules: [
         {
@@ -114,18 +114,18 @@ export class EksStack extends Stack {
       apiVersion: 'rbac.authorization.k8s.io/v1',
       kind: 'ClusterRoleBinding',
       metadata: {
-        name: 'eks-dashboard',
+        name: 'eks-console-dashboard-full-access-binding',
       },
       subjects: [
         {
           kind: 'Group',
-          name: 'eks-dashboard',
+          name: 'eks-console-dashboard-full-access-group',
           apiGroup: 'rbac.authorization.k8s.io'
         },
       ],
       roleRef: {
         apiGroup: 'rbac.authorization.k8s.io',
-        name: 'eks-dashboard',
+        name: 'eks-console-dashboard-full-access-clusterrole',
         kind: 'ClusterRole'
       }
     });
